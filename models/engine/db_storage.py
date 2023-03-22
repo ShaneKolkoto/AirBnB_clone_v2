@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Database storage engine using SQLAlchemy with a mysql+mysqldb database connection."""
+""" new class for sqlAlchemy """
 from os import getenv
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy import (create_engine)
@@ -12,59 +12,73 @@ from models.place import Place
 from models.review import Review
 from models.amenity import Amenity
 
+
 class DBStorage:
-    """DB Storage"""
+    """ create tables in environmental"""
     __engine = None
     __session = None
 
     def __init__(self):
-        """Initialize the object"""
         user = getenv("HBNB_MYSQL_USER")
-        password = getenv("HBNB_MYSQL_PWD")
+        passwd = getenv("HBNB_MYSQL_PWD")
         db = getenv("HBNB_MYSQL_DB")
         host = getenv("HBNB_MYSQL_HOST")
-        env = getenv("HBNB_MYSQL_ENV")
+        env = getenv("HBNB_ENV")
 
-        self.__engine = create_engine('mysql+mysqldb://{}:{}@{}/{}'.format(user, password, host, db), pool_pre_ping=True)
+        self.__engine = create_engine('mysql+mysqldb://{}:{}@{}/{}'
+                                      .format(user, passwd, host, db),
+                                      pool_pre_ping=True)
 
         if env == "test":
             Base.metadata.drop_all(self.__engine)
-    
+
     def all(self, cls=None):
-        """returns a dictionary of all the objects present"""
-        objects = {}
+        """returns a dictionary
+        Return:
+            returns a dictionary of __object
+        """
+        dic = {}
         if cls:
             if type(cls) is str:
                 cls = eval(cls)
             query = self.__session.query(cls)
-            for request in query:
-                key = "{}.{}".format(type(request).__name__, request.id)
-                objects[key] = request
-            else:
-                schema_list = [State, City, User, Place, Review, Amenity]
-                for class_name in schema_list:
-                    query = self.__session.query(class_name)
-                    for request in query:
-                        key = "{}.{}".format(type(request).__name__, request.id)
-                        objects[key] = request
-            return objects
+            for elem in query:
+                key = "{}.{}".format(type(elem).__name__, elem.id)
+                dic[key] = elem
+        else:
+            lista = [State, City, User, Place, Review, Amenity]
+            for clase in lista:
+                query = self.__session.query(clase)
+                for elem in query:
+                    key = "{}.{}".format(type(elem).__name__, elem.id)
+                    dic[key] = elem
+        return (dic)
+
     def new(self, obj):
-        """creates a new object"""
+        """add a new element in the table
+        """
         self.__session.add(obj)
-    
+
     def save(self):
-        """saves the current session"""
+        """save changes
+        """
         self.__session.commit()
-    
-    def delete(self,obj=None):
-        """deletes an object"""
+
+    def delete(self, obj=None):
+        """delete an element in the table
+        """
         if obj:
-            self.__session.delete(obj)
-    
+            self.session.delete(obj)
+
     def reload(self):
-        """reloads objects from the database"""
+        """configuration
+        """
         Base.metadata.create_all(self.__engine)
-        config = sessionmaker(bind=self.__engine, expire_on_commit=False)
-        session = scoped_session(config)
-        self.__session = session()
-    
+        sec = sessionmaker(bind=self.__engine, expire_on_commit=False)
+        Session = scoped_session(sec)
+        self.__session = Session()
+
+    def close(self):
+        """ calls remove()
+        """
+        self.__session.close()
