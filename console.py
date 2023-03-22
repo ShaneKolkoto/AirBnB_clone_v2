@@ -124,7 +124,7 @@ class HBNBCommand(cmd.Cmd):
                 data_handler = argument.split("=")
                 data_handler[1] = eval(data_handler[1])
                 if type(data_handler[1]) is str:
-                    data_handler[1] = data_handler[1].replace("_", " ").replace('"','\\"')
+                    data_handler[1] = data_handler[1].replace("", " ").replace('"','\\"')
                 key_val[data_handler[0]] = data_handler[1]
         except SyntaxError:
             print("** class name missing **")
